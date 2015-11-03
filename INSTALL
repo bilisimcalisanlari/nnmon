@@ -77,7 +77,8 @@ service nnmon restart
 
 7. Copy 'nnmon_sender.pl' to a client machine, change $port, $host, $dir parameters and run it or add it to the crontab. $host and $port are hostname and port number information for the remote DB server machine. It is the port you set in step 6. $dir is the directory where you put 'nnmon_sender.pl' in.
 
-* * * * * /home/aix/bin/nnmon_sender.pl >>/home/aix/bin/nnmon_sender.out 2>&1
+chmod 744 /home/aix/bin/nnmon_sender.pl
+echo "* * * * * /home/aix/bin/nnmon_sender.pl >>/home/aix/bin/nnmon_sender.out 2>&1"|crontab
 
 8. Set 'allow_url_include = On' and your timezone in the /etc/php.ini file if required and restart httpd.
 
@@ -111,13 +112,20 @@ chmod 700 /home/nnuser/nnmon_sum.py
 
 FURTHER CONFIGURATION: (For using the nnmon with large number of clients.)
 
-1. It is recommended to install nnmon db and server components to a 64-bit system, because 32-bit systems have some maximum thread limitations for the python 'nnmon_server.py' server. With the default setings of my 32-bit RHEL system I couldn't be able to run the server for more than 300 clients. But if you add below lines to the '/etc/security/limits.conf' file and reboot, the muximum thread limit will extend up to 500:
+1. If you want to control which users can login. You must insert a row to the parameter table with the values 'restrictusers', 'yes' and you must insert a row to the nnusers table with the value of the user's login name for each user.
+
+su - postgres
+psql -d nnbase2
+insert into parameter values ('restrictusers', 'yes');
+insert into nnusers values ('barisozel');
+
+2. It is recommended to install nnmon db and server components to a 64-bit system, because 32-bit systems have some maximum thread limitations for the python 'nnmon_server.py' server. With the default setings of my 32-bit RHEL system I couldn't be able to run the server for more than 300 clients. But if you add below lines to the '/etc/security/limits.conf' file and reboot, the muximum thread limit will extend up to 500:
 *               soft     nofile          8192
 *               hard     nofile          8192
 *               soft     stack           1024
 *               hard     stack           1024
 
-2. Scheduling nnmon_sender.pl to every minute in step 7 guaranties the minumum data loss when something happens bad to the server(ie. reboot of the nnmon server's OS or restart of the 'nnmon_server.py' or any network outage) but if you have many clients on a virtualized LPAR or Vmware environment, it may create a peak in the CPU usage of the hosting hardware. As a solution you my want to increase the scheduling interval and group your clients which shares the same hardware and give different startup times. If you group your clients into 5 groups Solution-1 is appropriate for you. If you want 10 groups, use Solution-2 below. Every line starts with the "crontab -l" command, must run on the machines in the same group, after you make the addition described in the step 7 above.
+3. Scheduling nnmon_sender.pl to every minute in step 7 guaranties the minumum data loss when something happens bad to the server(ie. reboot of the nnmon server's OS or restart of the 'nnmon_server.py' or any network outage) but if you have many clients on a virtualized LPAR or Vmware environment, it may create a peak in the CPU usage of the hosting hardware. As a solution you my want to increase the scheduling interval and group your clients which shares the same hardware and give different startup times. If you group your clients into 5 groups Solution-1 is appropriate for you. If you want 10 groups, use Solution-2 below. Every line starts with the "crontab -l" command, must run on the machines in the same group, after you make the addition described in the step 7 above.
 
 Solution-1:
 
@@ -139,4 +147,4 @@ crontab -l|sed  's/^.*nnmon_sender.pl.*$/7,17,27,37,47,57 * * * * \/home\/aix\/b
 crontab -l|sed  's/^.*nnmon_sender.pl.*$/8,18,28,38,48,58 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
 crontab -l|sed  's/^.*nnmon_sender.pl.*$/9,19,29,39,49,59 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
 
-20151021 Baris Ozel, ozelbaris@gmail.com
+20151103 Baris Ozel, ozelbaris@gmail.com
