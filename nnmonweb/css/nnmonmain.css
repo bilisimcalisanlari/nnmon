@@ -1,0 +1,45 @@
+body
+{
+	margin-top: 0px;
+	margin-left: 0px;
+	font-size: 11pt;
+	font-family: "Courier New", Courier, monospace;
+}
+table
+{
+	font-size: 11pt;
+	background-color: #ADF0D0;
+	font-family: "Courier New", Courier, monospace;
+}
+td
+{
+        word-break: break-all;
+}
+a:hover { font-family: "Courier New", Courier, monospace; font-size:11pt; color: #0066cc; text-decoration: underline}
+a:link
+{
+	font-size: 11pt;
+	color: #0000FF;
+	font-family: "Courier New", Courier, monospace;
+	text-decoration: none;
+}
+a
+{
+	font-size: 11pt;
+	color: #0000FF;
+	font-family: "Courier New", Courier, monospace;
+	font-variant: normal;
+	text-decoration: none;
+}
+h1{
+font-size: 28pt;
+}
+.tableheader{
+font-weight:bold;
+}
+
+.center1
+{ 
+margin-left: auto;
+margin-right: auto;
+}

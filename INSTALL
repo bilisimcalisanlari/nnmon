@@ -1,0 +1,142 @@
+POSTGRESQL DB CONFIGURATION:
+
+I presume that your Postgresql installation is ok. If you have made an initial installation, init the database and start the service.
+
+Edit the '/etc/init.d/postgresql92-postgresql' file and set that value:
+PGDATA=/data/pgsql/veri
+
+service postgresql92-postgresql initdb # Important: If you have existing data in any postgres databases all will be lost.
+service postgresql92-postgresql start
+
+If you want the service automaticly start/stop with the system:
+chkconfig --level 2 postgresql92-postgresql on
+chkconfig --level 3 postgresql92-postgresql on
+chkconfig --level 4 postgresql92-postgresql on
+
+You may need to edit the '/data/pgsql/veri/postgresql.conf' and set these values:
+shared_buffers = 2048MB  # 25% of total memory
+max_connections = 1000
+
+Also setting "checkpoint_segments = 180" may be useful to reduce the number of writes of not fulled up pages to the disk. You may monitor the difference with "iostat -k 5 20".
+
+If you change above settings, you might need to change that kernel setting in the '/etc/sysctl.conf' file:
+kernel.shmmax = 68719476736
+
+Then run that command to activate new kernel setting:
+sysctl -p
+
+If you make the change in the 'postgresql.conf', the restart the service:
+service postgresql92-postgresql restart
+
+INSTALLATION OF THE COMPONENTS:
+
+1. Create 'nnuser' OS user, create directory to place the db data, make postgres the owner of the directory.
+
+useradd nnuser
+mkdir -p /data/pgsql/nndata2
+chown postgres /data/pgsql/nndata2
+
+2. Import the 'nnbase2.dump.sql' sql dump. By default the system stores 3 day's data. If you want it to store 15 day's data use 'nnbase2.dump15.sql' instead.
+
+Before running the SQL script, you may want to change the tablespace location '/data/pgsql/nndata2' and user passwords 'temppass'. You will set this password in the steps 5, 6, 8 and 9.
+
+su - postgres
+psql < nnbase2.dump.sql
+
+3. If you insert into 'parameter', client hardware's serial number, and a preffered name as value, you will see the name on the left menu tree in the nnmonweb interface. This is valid for AIX servers.
+
+4. Install psycopg2 Python Postgresql module and other web server required packages.
+
+yum install php php-ldap php-pgsql httpd python-psycopg2
+
+5. Edit 'nnmon_truncate_partition.py' for the DB user password and add it to the crontab. It truncates data older then three days. If you want to save data more then three days you must edit 'nnbase2.dump.sql' before importing, add more partitions to the 'perfdata' table and you also have to set the 'partitioncount' parameter in the 'nnmon_truncate_partition.py' file. It must be equal to the 'perfdata' table's partition count.
+
+If you used the 'nnbase2.dump15.sql' file in step 2, proper 'partitioncount' parameter must be 16 in the 'nnmon_truncate_partition.py' file.
+
+0 23 * * * /home/nnuser/nnmon_truncate_partition.py >>/home/nnuser/nnmon_truncate_partition.out 2>&1
+
+NOTICE: Don't forget to give the proper permissions and you have clear text DB password in the file. Other users must be prohibited to read the file.
+
+chmod 700 /home/nnuser/nnmon_truncate_partition.py
+
+6. Check the log_file_name, port, dbname, dbhost, dbuser, dbpass parameters in the begining of the 'nnmon_server.py' file and then run it as the 'nnuser'.
+
+NOTICE: Don't forget to give the proper permissions and you have clear text DB password in the file. Other users must be prohibited to read the file.
+
+chmod 700 /home/nnuser/nnmon_server.py 
+
+If you want the 'nnmon_server.py' autostart with the system, copy 'nnmon' file to /etc/init.d directory and issue these commands:
+chmod 700 /etc/init.d/nnmon
+chkconfig --add nnmon
+chkconfig --level 2 nnmon on
+chkconfig --level 3 nnmon on
+chkconfig --level 4 nnmon on
+
+NOTE: After database restarts you may need to restart the 'nnmon_server.py' server by that command:
+service nnmon restart
+
+7. Copy 'nnmon_sender.pl' to a client machine, change $port, $host, $dir parameters and run it or add it to the crontab. $host and $port are hostname and port number information for the remote DB server machine. It is the port you set in step 6. $dir is the directory where you put 'nnmon_sender.pl' in.
+
+* * * * * /home/aix/bin/nnmon_sender.pl >>/home/aix/bin/nnmon_sender.out 2>&1
+
+8. Set 'allow_url_include = On' and your timezone in the /etc/php.ini file if required and restart httpd.
+
+sed 's/allow_url_include = Off/allow_url_include = On/' /etc/php.ini |grep include>/tmp/tempphpini;cat /tmp/tempphpini>/etc/php.ini
+
+echo 'date.timezone = "Europe/Istanbul"'>>/etc/php.ini
+
+service httpd restart
+
+NOTE: After database restarts you may need to restart the httpd server.
+
+8. Copy 'nnmonweb' directory to your web servers wwwroot and edit 'siteconfig.php' for the DB/user names and passwords.
+
+The web application supports login with two distinct LDAP servers. If an user authenticates any of one, the login will be sucessful. If you don't want to use LDAP login and want to connect to the application without any authorization run below commands in the wwwroot directory.
+
+cp -p index.php index.php.with-login
+cp -p leftmenu.php leftmenu.php.with-login
+cp index.php.without-login index.php
+cp leftmenu.php.without-login leftmenu.php
+
+NOTICE: Don't forget to give the proper permissions to the site-config.php and you have clear text DB password in the file. Other users must be prohibited to read the file.
+
+chmod 700 /var/www/html/siteconfig.php
+
+9. Copy 'nnmon_sum.py' to the DB server machine and add it to the crontab. Check the db name, password etc. in it. It summarizes data which will be truncated. It is only for AIX.
+0 1 * * * /home/nnuser/nnmon_sum.py >> /home/nnuser/nnmon_sum.out 2>&1
+
+NOTICE: Don't forget to give the proper permissions and you have clear text DB password in the file. Other users must be prohibited to read the file.
+
+chmod 700 /home/nnuser/nnmon_sum.py 
+
+FURTHER CONFIGURATION: (For using the nnmon with large number of clients.)
+
+1. It is recommended to install nnmon db and server components to a 64-bit system, because 32-bit systems have some maximum thread limitations for the python 'nnmon_server.py' server. With the default setings of my 32-bit RHEL system I couldn't be able to run the server for more than 300 clients. But if you add below lines to the '/etc/security/limits.conf' file and reboot, the muximum thread limit will extend up to 500:
+*               soft     nofile          8192
+*               hard     nofile          8192
+*               soft     stack           1024
+*               hard     stack           1024
+
+2. Scheduling nnmon_sender.pl to every minute in step 7 guaranties the minumum data loss when something happens bad to the server(ie. reboot of the nnmon server's OS or restart of the 'nnmon_server.py' or any network outage) but if you have many clients on a virtualized LPAR or Vmware environment, it may create a peak in the CPU usage of the hosting hardware. As a solution you my want to increase the scheduling interval and group your clients which shares the same hardware and give different startup times. If you group your clients into 5 groups Solution-1 is appropriate for you. If you want 10 groups, use Solution-2 below. Every line starts with the "crontab -l" command, must run on the machines in the same group, after you make the addition described in the step 7 above.
+
+Solution-1:
+
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/0,5,10,15,20,25,30,35,40,45,50,55 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/1,6,11,16,21,26,31,36,41,46,51,56 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/2,7,12,17,22,27,32,37,42,47,52,57 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/3,8,13,18,23,28,33,38,43,48,53,58 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/4,9,14,19,24,29,34,39,44,49,54,59 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+
+Solution-2:
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/0,10,20,30,40,50 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/1,11,21,31,41,51 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/2,12,22,32,42,52 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/3,13,23,33,43,53 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/4,14,24,34,44,54 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/5,15,25,35,45,55 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/6,16,26,36,46,56 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/7,17,27,37,47,57 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/8,18,28,38,48,58 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+crontab -l|sed  's/^.*nnmon_sender.pl.*$/9,19,29,39,49,59 * * * * \/home\/aix\/bin\/nnmon_sender.pl >>\/home\/aix\/bin\/nnmon_sender.out 2>\&1/'|crontab
+
+20151021 Baris Ozel, ozelbaris@gmail.com

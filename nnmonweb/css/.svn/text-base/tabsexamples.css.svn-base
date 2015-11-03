@@ -1,0 +1,107 @@
+/* CSS Document */
+body
+{
+	background-color: #fff;
+}
+
+.pages
+{
+	position: relative;
+	float: none;
+	clear: both;
+	width: 100%;
+    display: none;
+    padding: 3px;
+    border: 1px solid #560702;
+    border-top-width: 0px;
+    background-color: #F4783C;
+    -moz-box-sizing: border-box;
+}
+
+span.hilite
+{
+	color: #00f;
+	background-color: #eee;
+}
+
+#navcontainer
+{
+	position: relative;
+	float: left;
+	width: 100%;
+    border-bottom: 1px solid #7ABBDA;
+    -moz-box-sizing: border-box;
+}
+
+ul.navlist
+{
+	position: relative;
+	top: 1px;
+	display: block;
+	float: left;
+	clear: both;
+
+	margin-top: 0px;	
+	margin-left: 0px;
+	margin-bottom: 0px;
+	padding-left: 9px;
+	padding-bottom: 0px;
+
+	font: 10px Verdana, sans-serif;
+	list-style-type: none;
+    -moz-box-sizing: border-box;
+}
+
+ul.navlist li
+{
+	display: block;
+	float: left;
+	margin: 0;
+	padding: 0;
+	padding-right: 5px;
+	width: auto;
+	height: 23px;
+	line-height: 23px;
+	font-weight: bold;
+	background-image: url(../i/iar.png);
+	background-position: center right;
+	background-repeat: no-repeat;
+    -moz-box-sizing: border-box;	
+}
+
+ul.navlist li.tabactive
+{
+	background-image: url(../i/ar.png);
+}
+
+ul.navlist li a, ul.navlist li a:link
+{
+	color: #FFB098;
+	text-decoration: none;
+	padding: 0px 5px 0px 11px;
+	display: block;
+	background-image: url(../i/ial.png);
+	background-repeat: no-repeat;
+	background-position: 0px center;
+}
+
+ul.navlist li a:hover
+{
+	color: #FFE5DD;
+	cursor: pointer;
+	background-image: url(../i/ial.png);
+	background-repeat: no-repeat;
+	background-position: 0px center;
+}
+
+ul.navlist li.tabactive a, ul.navlist li.tabactive a:link
+{
+	color: #F8FFC8;
+	cursor: default;
+	background-image: url(../i/al.png);
+}
+
+ul.navlist li.tabactive a:hover
+{
+	background-image: url(../i/al.png);
+}

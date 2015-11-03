@@ -1,0 +1,78 @@
+#!/bin/sh
+# Version 11 20151026
+# nnmon: Starts/Stops nnmon_server.py
+#
+# chkconfig: 35 99 01
+# description:  Starts/Stops nnmon_server.py program.
+# processname: nnmon_server.py
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+NNMONDIR=/home/nnuser
+NNMONUSER=nnuser
+MAXLOGSIZE_inKB=10000
+
+start() {
+    ret=`ps -ef|grep "/usr/bin/python $NNMONDIR/nnmon_server.py"|grep -v grep|wc -l`
+    if [[ $ret -gt 0 ]]; then
+      echo "nnmon_server.py already running..."
+      exit
+    fi
+    find $NNMONDIR -name nnmon_server.log -size +$MAXLOGSIZE_inKB -exec mv {} {}.`date '+%Y%m%d_%H%M%S'|tr -d '\n'` \;
+    find $NNMONDIR -name nnmon_server.stderr.log -size +$MAXLOGSIZE_inKB -exec mv {} {}.`date '+%Y%m%d_%H%M%S'|tr -d '\n'` \;
+    echo "Starting $NNMONDIR/nnmon_server.py "
+    su - $NNMONUSER -c "$NNMONDIR/nnmon_server.py 2>>$NNMONDIR/nnmon_server.stderr.log"
+    sleep 10
+    exec 2>/dev/null
+    ret=`ps -ef|grep nnmon_server.py|grep -v grep|awk '{print "ps -Lfp " $2}'|sh|awk '{if ($2 == $4) {print;a=$6-1;print "Current connected client count: " a}}'`
+    if [ -z $ret ]
+    then
+      echo "nnmon_server.py is not running."
+    else
+      echo $ret|sed 's/Cur/\nCur/'
+    fi
+    echo "To show the status of the nnmon_server.py try using:"
+    echo "/etc/init.d/nnmon status"
+    echo "service nnmon status"
+}
+
+stop() {
+   echo "Stopping $NNMONDIR/nnmon_server.py "
+   ps -ef|grep "/usr/bin/python $NNMONDIR/nnmon_server.py"|grep -v grep|awk '{print "kill -9 " $2}'|sh   
+   RETVAL=$?   
+}
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        exec 2>/dev/null
+        ret=`ps -ef|grep nnmon_server.py|grep -v grep|awk '{print "ps -Lfp " $2}'|sh|awk '{if ($2 == $4) {print;a=$6-1;print "Current connected client count: " a}}'`
+        if [ -z $ret ]
+        then
+          echo "nnmon_server.py is not running."
+        else
+          echo $ret|sed 's/Cur/\nCur/'
+        fi
+        ;;
+    restart)
+        stop
+        sleep 60
+        start
+        ;;
+    condrestart)
+        ;;
+    reload)
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+        ;;
+esac
+exit $RETVAL

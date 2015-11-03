@@ -1,0 +1,37 @@
+.pages
+{
+	font-family: verdana;
+	font-size: 12px;
+	color: #111;
+	padding: 5px;
+}
+
+.pages div.holder
+{
+	width: 100%;
+	padding: 15px;
+	background: #fff;
+	border: 1px solid #666;
+	border-color: #111 #eee #eee #111;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
+.pages div.code
+{
+	display: none;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+}
+
+.pages a.codeToggle
+{
+	height: 28px;
+	line-height: 28px;
+	padding-left: 30px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	display: block;
+	background: url(../i/code.png) no-repeat;
+	-moz-box-sizing: border-box;
+}

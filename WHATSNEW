@@ -1,0 +1,36 @@
+nnmon 11
+
+What's new since the last version 0.10?
+
+* Improved documentation.
+
+=== nnmon Web Interface ===
+* SQL injection protection added to the nnmonweb login page.
+* 'harware.php' page's performance improved. It is the page which is linked to the expandable AIX hardware platforms and includes all host's combined CPU usage graph which runs on the same platform.
+* New icons, visual changes.
+* New "Logout" link.
+* Some php coding mistakes which creates problems with the newer versions of php corrected.
+
+=== nnmon_server.py ===
+* The main loop rewritten and many exception handling code added to the 'nnmon_server.py'.
+* Timestamps added to the new 'nnmon_server.log'.
+* Client connections and disconnections will be logged with the IP address of the client.
+* Socket receive buffer length increased to 4096 bytes from 1024 bytes. 
+* Socket receive timeout increased to 300 seconds from 120 seconds because some System p Vio servers with large configurations could not complete the header data and the first 30 seconds data in 120 seconds.
+
+=== nnmon_sender.pl ===
+* Timestamps added to the 'nnmon_sender.pl' output.
+* The 'kill -9' command was never running when exiting the script. Forked nmon process was running until the period of time given at the startup with the arguments.
+* Auto flash of the output code added for the standart output and error. (STDOUT, STDERR)
+* Log file switching added to the 'nnmon_sender.pl'. 
+* Timestamps added to the 'nnmon_sender.
+
+=== /etc/init.d/nnmon ===
+* The running path of the nnmon_sender.py and the OS user became parametric.
+* 60 seconds of delay added the restart step, between stop and start. Rebinding to the port was a problem.
+* New argument added "status". You may use:
+  /etc/init.d/nnmon status
+  or
+  service nnmon status
+
+20151020 Baris Ozel, ozelbaris@gmail.com
