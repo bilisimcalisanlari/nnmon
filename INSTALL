@@ -3,7 +3,7 @@ POSTGRESQL DB CONFIGURATION:
 I presume that your Postgresql installation is ok. If you have made an initial installation, init the database and start the service.
 
 Edit the '/etc/init.d/postgresql92-postgresql' file and set that value:
-PGDATA=/data/pgsql/veri
+PGDATA=/data/pgsql/base
 
 service postgresql92-postgresql initdb # Important: If you have existing data in any postgres databases all will be lost.
 service postgresql92-postgresql start
@@ -13,7 +13,7 @@ chkconfig --level 2 postgresql92-postgresql on
 chkconfig --level 3 postgresql92-postgresql on
 chkconfig --level 4 postgresql92-postgresql on
 
-You may need to edit the '/data/pgsql/veri/postgresql.conf' and set these values:
+You may need to edit the '/data/pgsql/base/postgresql.conf' and set these values:
 shared_buffers = 2048MB  # 25% of total memory
 max_connections = 1000
 
