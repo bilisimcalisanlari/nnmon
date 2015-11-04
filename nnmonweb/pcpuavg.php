@@ -50,7 +50,7 @@ echo "<div style='font-size: 18pt; font-weight: bold; text-align: center;'>{$_GE
 </script>
 <br>
 <table class='center1' border='1' cellspacing='0' cellpadding='1'>
-<tr><th>Zaman</th><th>PCPU Avg.</th><th>PCPU Avg. 9-18</th><tr>
+<tr><th>Date</th><th>PCPU Avg.</th><th>PCPU Avg. 9-18</th><tr>
 <?= $tablestr ?>
 </table>
 </body>
