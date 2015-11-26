@@ -7,9 +7,9 @@ The first version was ready on 10/25/2010 for internal use of my employer compan
 
 nnmon_sender.pl is a pure Perl script. It runs the external nmon program and opens it's output file for reading. Every line read from the file is sent to nnmon_server.py program via TCP socket.
 
-nnmon_server.py uses psycopg2 Phyton Postgresql module and is a Phyton script. It reads incoming data, parses and inserts the results to the database.
+nnmon_server.py uses psycopg2 Pyhton Postgresql module and is a Phyton script. It reads incoming data, parses and inserts the results to the database.
 
-nnmon_sum.py is a summarization script. It summarizes the data of the day before because it will be truncated in four(It can be changed. Refer to the INSTALL file.) days. Resulting data will be available in one day and will be shown in the "average screens".
+nnmon_sum.py is a summarization script. It summarizes the data of the day before because it will be truncated in the fourth day(It can be changed. Refer to the INSTALL file.). Resulting data will be available in one day and will be shown in the "average screens".
 
 nnmon_truncate_partition.py is a script which truncates the patrtition with the oldest data inside.
 
